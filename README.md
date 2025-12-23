@@ -29,8 +29,3 @@
 
 ### 06. 국가별 재복역률 비교(추적 1~5년)
 ![](outputs/figures/06_world_recidivism_followup_lines.png)
-
-## 데이터 흐름
-- `data/raw` (원본) → `src/preprocess.py` → `data/processed` (tidy)
-- `data/processed` → `src/make_tables.py` → `outputs` (H1~H4 테이블)
-- `data/processed` → `src/visualize.py` → `outputs/figures` (이미지)
