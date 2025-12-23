@@ -34,7 +34,6 @@ def _set_style() -> None:
         "grid.linestyle": "-",
     })
 
-    # Windows: Malgun Gothic / macOS: AppleGothic / Linux: Nanum or Noto (if installed)
     font = _pick_font(["Malgun Gothic", "AppleGothic", "NanumGothic", "Noto Sans CJK KR", "Noto Sans KR"])
     plt.rcParams["font.family"] = font
     plt.rcParams["axes.unicode_minus"] = False
@@ -63,9 +62,9 @@ def load_processed() -> dict[str, pd.DataFrame]:
     }
 
 
-# -------------------------
+
 # Figure 1: 국내 재복역률 추이
-# -------------------------
+
 def fig_domestic_reimprisonment(e_nara: pd.DataFrame, out: Path) -> None:
     df = e_nara.copy()
     df = df[df["metric"].str.contains("재복역기간")].copy()
@@ -84,9 +83,9 @@ def fig_domestic_reimprisonment(e_nara: pd.DataFrame, out: Path) -> None:
     _save(fig, out)
 
 
-# -------------------------
+
 # Figure 2: 재범까지 경과기간 분포(동종/이종) - 비중%
-# -------------------------
+
 def fig_reoffend_time_distribution(period_type: pd.DataFrame, out: Path) -> None:
     order = ["1개월이내", "3개월이내", "6개월이내", "1년이내", "2년이내", "3년이내", "3년초과"]
     df = period_type.copy()
@@ -107,9 +106,9 @@ def fig_reoffend_time_distribution(period_type: pd.DataFrame, out: Path) -> None
     _save(fig, out)
 
 
-# -------------------------
+
 # Figure 3: 재범자 수 상위 범죄유형 (Top-N) - barh
-# -------------------------
+
 def fig_top_crimes(period_type: pd.DataFrame, out: Path, top_n: int = 12) -> None:
     total = period_type.groupby("crime", as_index=False)["count"].sum()
     total = total.sort_values("count", ascending=False).head(top_n).sort_values("count")
@@ -122,9 +121,9 @@ def fig_top_crimes(period_type: pd.DataFrame, out: Path, top_n: int = 12) -> Non
     _save(fig, out)
 
 
-# -------------------------
+
 # Figure 4: 전과 유무 구성비(2023, KOSIS) - 비중%
-# -------------------------
+
 def fig_prior_conviction_share(kosis_prior: pd.DataFrame, out: Path) -> None:
     df = kosis_prior.copy()
     base = df[(df["crime_lvl1"] == "합계") & (df["crime_lvl2"] == "소계") & (df["crime_lvl3"] == "소계")]
@@ -155,9 +154,9 @@ def fig_prior_conviction_share(kosis_prior: pd.DataFrame, out: Path) -> None:
     _save(fig, out)
 
 
-# -------------------------
+
 # Figure 5: 교육수준(버킷) - 비중%
-# -------------------------
+
 def fig_education_bucket_share(edu: pd.DataFrame, out: Path) -> None:
     def bucket(x: str) -> str:
         x = str(x)
@@ -182,16 +181,13 @@ def fig_education_bucket_share(edu: pd.DataFrame, out: Path) -> None:
     _save(fig, out)
 
 
-# -------------------------
+
 # Figure 6: 국가별 재복역률(1~5년) 라인차트 (Reimprisonment 기준)
-# -------------------------
+
 def fig_world_followup_lines(world: pd.DataFrame, out: Path) -> None:
     df = world.copy()
-    # South Korea is present in this dataset under Reimprisonment (not Reconviction).
     df = df[df["type"].str.lower().eq("reimprisonment")].copy()
     df = df[df["followup_years"].isin([1, 2, 3, 4, 5])].copy()
-
-    # Keep the list small and include South Korea.
     pick = ["France", "United States", "New Zealand", "Israel", "South Korea"]
     df = df[df["country"].isin(pick)].copy()
 

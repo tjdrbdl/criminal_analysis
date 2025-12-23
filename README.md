@@ -1,4 +1,4 @@
-# Criminal Analysis (Starter)
+# Criminal Analysis
 
 공공데이터 CSV/엑셀을 전처리하고, 가설(H1~H4)에 필요한 요약 테이블과 시각화 이미지를 생성하는 미니 프로젝트입니다.
 
