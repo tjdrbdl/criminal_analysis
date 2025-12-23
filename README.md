@@ -8,25 +8,9 @@
 - **H3**: 교육수준(고졸이하 vs 대학이상) 분포
 - **H4**: 국가별 재복역률 비교(추적기간 1~5년, 가능한 국가만)
 
-## 실행 순서
-아래 3개만 실행하면 `data/processed`, `outputs`, `outputs/figures`가 채워집니다.
-
-```bash
-# 1) raw -> processed
-python -m src.preprocess
-
-# 2) processed -> outputs (가설용 요약 테이블)
-python -m src.make_tables
-
-# 3) processed -> outputs/figures (이미지)
-python -m src.visualize
-```
-
 ## 산출물
 - 요약 테이블: `outputs/*.csv` (H1~H4)
 - 시각화 이미지: `outputs/figures/*.png`
-
-## Figures 미리보기
 
 ### 01. 국내 3년 이내 재복역률 추이
 ![](outputs/figures/01_domestic_3yr_reimprisonment_trend.png)
@@ -46,11 +30,7 @@ python -m src.visualize
 ### 06. 국가별 재복역률 비교(추적 1~5년)
 ![](outputs/figures/06_world_recidivism_followup_lines.png)
 
-## 데이터 흐름(딱 이것만)
+## 데이터 흐름
 - `data/raw` (원본) → `src/preprocess.py` → `data/processed` (tidy)
 - `data/processed` → `src/make_tables.py` → `outputs` (H1~H4 테이블)
 - `data/processed` → `src/visualize.py` → `outputs/figures` (이미지)
-
-## 간단 메모
-- 한국 공공데이터 CSV는 **CP949** 인코딩이 많아 스크립트에서 인코딩을 명시합니다.
-- KOSIS 전과 데이터는 **2줄 헤더** 형태라 전처리에서 컬럼명을 합칩니다.
