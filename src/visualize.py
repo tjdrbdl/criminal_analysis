@@ -176,11 +176,21 @@ def fig_prior_conviction_share(kosis_prior: pd.DataFrame, out: Path) -> None:
     colors = [color_map[c] for c in comp["category"]]
 
     fig, ax = plt.subplots()
-    ax.bar(comp["category"], comp["share_pct"], color=colors, edgecolor="white", linewidth=0.7)
+    wedges, texts, autotexts = ax.pie(
+        comp["share_pct"],
+        labels=None,
+        colors=colors,
+        startangle=90,
+        counterclock=False,
+        autopct=lambda p: f"{p:.1f}%" if p >= 1 else "",
+        pctdistance=0.78,
+        wedgeprops={"width": 0.45, "edgecolor": "white", "linewidth": 1.0},
+        textprops={"fontsize": 10},
+    )
     ax.set_title("범죄자 전과 유무 구성비(2023)")
-    ax.set_ylabel("비중(%)")
-    for i, v in enumerate(comp["share_pct"]):
-        ax.text(i, v, f"{v:.1f}%", ha="center", va="bottom", fontsize=9)
+    ax.axis("equal")
+    ax.grid(False)
+    ax.legend(wedges, comp["category"], loc="center left", bbox_to_anchor=(1.0, 0.5), frameon=False)
     _save(fig, out)
 
 
