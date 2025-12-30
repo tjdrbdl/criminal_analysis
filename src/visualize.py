@@ -3,8 +3,31 @@ import re
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import font_manager
+from matplotlib import font_manager, colors as mcolors
 from .config import DATA_PROCESSED, OUTPUTS
+
+
+def _categorical_color_map(categories: list[str], cmap_name: str = "tab10") -> dict[str, str]:
+    """Deterministic category -> color mapping using a Matplotlib qualitative cmap."""
+    cmap = plt.get_cmap(cmap_name)
+    # tab10/tab20 expose `.colors`; fall back to sampling if needed
+    base = list(getattr(cmap, "colors", []))
+    if not base:
+        base = [cmap(i / max(1, len(categories) - 1)) for i in range(len(categories))]
+
+    color_map: dict[str, str] = {}
+    for idx, cat in enumerate(categories):
+        color_map[cat] = mcolors.to_hex(base[idx % len(base)])
+    return color_map
+
+
+def _sequential_colors(values: pd.Series, cmap_name: str = "Blues") -> list[str]:
+    """Map numeric values to a sequential colormap (good for single-series bar charts)."""
+    v = pd.to_numeric(values, errors="coerce")
+    v = v.fillna(0)
+    norm = mcolors.Normalize(vmin=float(v.min()), vmax=float(v.max()) if float(v.max()) != float(v.min()) else float(v.min()) + 1.0)
+    cmap = plt.get_cmap(cmap_name)
+    return [mcolors.to_hex(cmap(norm(float(x)))) for x in v]
 
 
 def _pick_font(preferred: list[str]) -> str:
@@ -33,6 +56,9 @@ def _set_style() -> None:
         "grid.alpha": 0.25,
         "grid.linestyle": "-",
     })
+
+    # Make line charts and multi-series plots default to distinct colors.
+    plt.rcParams["axes.prop_cycle"] = plt.cycler(color=list(plt.get_cmap("tab10").colors))
 
     font = _pick_font(["Malgun Gothic", "AppleGothic", "NanumGothic", "Noto Sans CJK KR", "Noto Sans KR"])
     plt.rcParams["font.family"] = font
@@ -114,7 +140,8 @@ def fig_top_crimes(period_type: pd.DataFrame, out: Path, top_n: int = 12) -> Non
     total = total.sort_values("count", ascending=False).head(top_n).sort_values("count")
 
     fig, ax = plt.subplots(figsize=(9, 6))
-    ax.barh(total["crime"], total["count"])
+    bar_colors = _sequential_colors(total["count"], cmap_name="Blues")
+    ax.barh(total["crime"], total["count"], color=bar_colors, edgecolor="white", linewidth=0.7)
     ax.set_title(f"재범자 수 상위 {top_n} 범죄유형(집계)")
     ax.set_xlabel("재범자 수(명)")
     ax.set_ylabel("")
@@ -145,8 +172,11 @@ def fig_prior_conviction_share(kosis_prior: pd.DataFrame, out: Path) -> None:
     })
     comp["share_pct"] = 100 * comp["count"] / comp["count"].sum()
 
+    color_map = _categorical_color_map(["전과없음", "전과(1회 이상)", "미상"], cmap_name="tab10")
+    colors = [color_map[c] for c in comp["category"]]
+
     fig, ax = plt.subplots()
-    ax.bar(comp["category"], comp["share_pct"])
+    ax.bar(comp["category"], comp["share_pct"], color=colors, edgecolor="white", linewidth=0.7)
     ax.set_title("범죄자 전과 유무 구성비(2023)")
     ax.set_ylabel("비중(%)")
     for i, v in enumerate(comp["share_pct"]):
@@ -172,8 +202,13 @@ def fig_education_bucket_share(edu: pd.DataFrame, out: Path) -> None:
     total["share_pct"] = 100 * total["count"] / total["count"].sum()
     total = total.sort_values("share_pct", ascending=False)
 
+    # Keep colors stable regardless of sort order.
+    bucket_order = ["고졸 이하", "대학 이상", "미상/기타"]
+    color_map = _categorical_color_map(bucket_order, cmap_name="tab10")
+    colors = [color_map.get(b, "#808080") for b in total["bucket"]]
+
     fig, ax = plt.subplots()
-    ax.bar(total["bucket"], total["share_pct"])
+    ax.bar(total["bucket"], total["share_pct"], color=colors, edgecolor="white", linewidth=0.7)
     ax.set_title("범죄자 교육수준 분포(2020, 버킷)")
     ax.set_ylabel("비중(%)")
     for i, v in enumerate(total["share_pct"]):
